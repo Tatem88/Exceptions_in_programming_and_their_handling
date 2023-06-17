@@ -24,86 +24,71 @@ package DZ_3;
 Слушатель напишите приложение, которое будет запрашивать у пользователя следующие данные в произвольном порядке,
 разделенные пробелов
  */
-import java.io.*;
+import java.io.FileWriter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Scanner;
 
 
 public class Task_1 {
-    private static String[] date_phone = new String[11];
-    public static void main(String[] args) throws IOException {
-        String act;
-        load_date_phone();
-        Printbook();
-
-        System.out.println("выбор действия:  добавить данные (add),  удалить данные (del)," +
-                "  показать данные (show),  выход (exit)");
-
-        BufferedReader bf = new BufferedReader(new InputStreamReader(System.in));
-        act = bf.readLine();
-        while(!act.equals("exit")){
-            if(act.equals("add")){
-                System.out.println("Введите фамилию:");
-                String first_name = bf.readLine();
-                System.out.println("Введите имя:");
-                String second_name = bf.readLine();
-                System.out.println("Введите отчество:");
-                String Third_name = bf.readLine();
-                System.out.println("Введите дату рождения (dd.mm.yyyy):");
-                String birthdate = bf.readLine();
-                System.out.println("Введите телефон:");
-                String phone = bf.readLine();
-                System.out.println("Введите пол (f/m):");
-                String pol = bf.readLine();
-                add_date_phone(first_name, second_name, Third_name, birthdate, phone, pol);
-            }else{
-                if(act.equals("del")){
-                    for (int i = 0; i < date_phone.length; i++) {
-                        date_phone[i]="";
-                    }
-                }else{
-                    if(act.equals("show")){
-                        Printbook();
-                    }
+    private static final int REQUIRED_ARGS_COUNT = 6;
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd.MM.yyyy");
+    public static void main(String[] args) {
+            try {
+                Scanner scanner = new Scanner(System.in);
+                System.out.println("Введите данные (ФИО датa_рождения номер_телефона пол):");
+                String input = scanner.nextLine();
+                String[] parts = input.split(" ");
+                if (parts.length != REQUIRED_ARGS_COUNT) {
+                    throw new IllegalArgumentException("Неверное количество аргументов");
                 }
+                String surname = parts[0];
+                String name = parts[1];
+                String patronymic = parts[2];
+                Date birthDate = parseBirthDate(parts[3]);
+                Long phoneNumber = Long.valueOf(parts[4]);
+                Gender gender = parseGender(parts[5]);
+                String fileName = surname + ".txt";
+                String fileContent = surname + name + patronymic + formatDate(birthDate) + " " + phoneNumber + gender.getCode() + "\n";
+                FileWriter writer = new FileWriter(fileName, true);
+                writer.write(fileContent);
+                writer.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-            System.out.println("выбор действия: (add)добавить данные, (del)удалить данные, (show)показать данные, (exit)выход");
-            act = bf.readLine();
         }
-    }
 
-    public static void load_date_phone() throws IOException {
-        File file = new File("book.txt");
-        if (file.exists()){
-            BufferedReader reader = new BufferedReader(new FileReader(new File("book.txt")));
-            String act;
-            while ((act = reader.readLine())!=null) {
-                String dat = " ";
-                date_phone[0]=dat;
-                date_phone[1]=dat;
-                date_phone[2]=dat;
-                date_phone[3]=dat;
-                date_phone[4]=dat;
-                date_phone[5]=dat;
+        private static Date parseBirthDate(String input) throws ParseException {
+            try {
+                return DATE_FORMAT.parse(input);
+            } catch (ParseException e) {
+                throw new ParseException("Неверный формат даты рождения", e.getErrorOffset());
             }
-            reader.close();
+        }
+
+        private static Gender parseGender(String input) {
+            switch (input) {
+                case "m":
+                    return Gender.Male;
+                case "f":
+                    return Gender.Female;
+                default:
+                    throw new IllegalArgumentException("Некорректно введен пол");
+            }
+        }
+        private static String formatDate(Date date) {
+            return DATE_FORMAT.format(date);
         }
     }
-
-
-    public static void Printbook(){
-        System.out.println("Cправочник: ");
-        for (int i = 0; i < date_phone.length; i++) {
-            System.out.println(date_phone[i]);;
+    enum Gender {
+        Male("m"),
+        Female("f");
+        private final String code;
+        Gender(String code) {
+            this.code = code;
+        }
+        public String getCode() {
+            return code;
         }
     }
-
-
-    private static void add_date_phone(String first_name, String second_name, String Third_name, String birthdate,
-                                     String phone, String pol) {
-        date_phone[0]=first_name;
-        date_phone[1]=second_name;
-        date_phone[2]=Third_name;
-        date_phone[3]=birthdate;
-        date_phone[4]=phone;
-        date_phone[5]=pol;
-    }
-}
